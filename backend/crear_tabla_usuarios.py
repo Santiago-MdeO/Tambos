@@ -11,9 +11,10 @@ cursor = conexion.cursor()
 
 crear_tabla = """
 CREATE TABLE IF NOT EXISTS usuarios (
-    cedula VARCHAR(20) PRIMARY KEY,
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    cedula VARCHAR(20) UNIQUE,
     nombre VARCHAR(100),
-    rol ENUM('tambero', 'inseminador', 'patron', 'veterinario'),
+    rol ENUM('tambero', 'inseminador', 'patron', 'desarrollo', 'veterinario'),
     contrasena_hash VARCHAR(255),
     fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -2,10 +2,10 @@ import mysql.connector
 import bcrypt
 
 # Datos del usuario (pueden venir más adelante desde un formulario)
-cedula = "41234567"
-nombre = "María Rodríguez"
-rol = "veterinario"
-contrasena = "micontraseña123"
+cedula = "46623757"
+nombre = "Cristian Navarro"
+rol = "desarrollo"
+contrasena = "123456789"
 
 # Hasheamos la contraseña (para no guardarla en texto plano)
 contrasena_hash = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt())
