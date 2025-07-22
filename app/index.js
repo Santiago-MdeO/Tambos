@@ -1,26 +1,44 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen() {
+  const router = useRouter();
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Aquí se enviará la data al backend más adelante
-    const payload = {
+  const { login } = useAuth(); // Accedemos a la función para guardar el user
+
+const handleLogin = () => {
+  const payload = { cedula, password };
+  console.log('Datos para login:', payload);
+
+  // Simulación de login exitoso
+  if (cedula.length === 8 && password.length >= 4) {
+    const usuarioSimulado = {
+      nombre: 'Carlos González',
       cedula,
-      password,
     };
-    console.log('Datos para login:', payload);
-    // 👉 cuando Santi esté listo: hacer fetch o axios acá
-  };
+
+    login(usuarioSimulado); // Guardamos el usuario en contexto
+    router.push('/tambo');  // Navegamos
+  } else {
+    alert('Cédula o contraseña inválida');
+  }
+};
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={styles.scroll}>
+      >
+      {/* <ScrollView contentContainerStyle={styles.scroll}> */}
+
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+         keyboardShouldPersistTaps="handled">
+
         <View style={styles.headerContainer}>
           <Image
             source={require('../assets/logo.png')} // reemplazar por la ruta correcta
@@ -60,7 +78,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footer}>Uruguay</Text>
+        <Text style={styles.footer}>Zephyra</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
