@@ -16,7 +16,7 @@ export default function LoginScreen() {
   
     if (data.ok) {
       console.log('Usuario logueado:', data.usuario);
-      login(res.usuario)
+      login(data.usuario);
       router.push('/tambo');
     } else {
       alert(data.error || 'Cédula o contraseña incorrecta');

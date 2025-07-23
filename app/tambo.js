@@ -65,17 +65,21 @@ export default function TamboScreen() {
       <Text style={styles.header}>Seleccioná un Tambo</Text>
 
       {tambos.map((tambo, i) => (
-        <TouchableOpacity key={i} style={styles.tamboBox} onPress={() => alert(`Seleccionado: ${tambo.nombre}`)}>
+        <TouchableOpacity
+          key={i}
+          style={styles.tamboBox}
+          onPress={() => router.push({ pathname: '/animales', params: { tamboId: tambo.id } })}
+        >
           <Text style={styles.tamboText}>{tambo.nombre}</Text>
         </TouchableOpacity>
       ))}
 
-      {/* Lista de tambos */}
-      {/* {tambos.map((nombre, i) => (
-        <TouchableOpacity key={i} style={styles.tamboBox} onPress={() => alert(`Seleccionado: ${nombre}`)}>
-          <Text style={styles.tamboText}>{nombre}</Text>
+      {/* {tambos.map((tambo, i) => (
+        <TouchableOpacity key={i} style={styles.tamboBox} onPress={() => alert(`Seleccionado: ${tambo.nombre}`)}>
+          <Text style={styles.tamboText}>{tambo.nombre}</Text>
         </TouchableOpacity>
       ))} */}
+
 
       {/* Modal de perfil */}
       <Modal
