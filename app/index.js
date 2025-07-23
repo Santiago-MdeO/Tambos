@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { loginUsuario } from '../lib/api';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -10,23 +11,17 @@ export default function LoginScreen() {
 
   const { login } = useAuth(); // Accedemos a la función para guardar el user
 
-const handleLogin = () => {
-  const payload = { cedula, password };
-  console.log('Datos para login:', payload);
-
-  // Simulación de login exitoso
-  if (cedula.length === 8 && password.length >= 4) {
-    const usuarioSimulado = {
-      nombre: 'Carlos González',
-      cedula,
-    };
-
-    login(usuarioSimulado); // Guardamos el usuario en contexto
-    router.push('/tambo');  // Navegamos
-  } else {
-    alert('Cédula o contraseña inválida');
-  }
-};
+  const handleLogin = async () => {
+    const data = await loginUsuario(cedula, password);
+  
+    if (data.ok) {
+      console.log('Usuario logueado:', data.usuario);
+      login(res.usuario)
+      router.push('/tambo');
+    } else {
+      alert(data.error || 'Cédula o contraseña incorrecta');
+    }
+  };
 
   return (
     <KeyboardAvoidingView

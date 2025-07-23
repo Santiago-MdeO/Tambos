@@ -7,11 +7,12 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function TamboScreen() {
   const router = useRouter();
-  // const { user, logout } = useAuth();
   const { user, setUser, logout } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const tambos = ['Tambo El Roble', 'Tambo La Esperanza', 'Tambo La Casa', 'Tambo El Almendro', 'Tambo La Cueva'];
+  const tambos = user?.tambos || [];
+
+  //const tambos = ['Tambo El Roble', 'Tambo La Esperanza', 'Tambo La Casa', 'Tambo El Almendro', 'Tambo La Cueva'];
 
   const getIniciales = (nombre = '') => {
     const partes = nombre.trim().split(' ');
@@ -20,20 +21,20 @@ export default function TamboScreen() {
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-  
+
+
     if (permissionResult.granted === false) {
       alert('Se necesita permiso para acceder a la galería.');
       return;
     }
-  
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaType.IMAGE,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
-  
+
     if (!result.canceled && result.assets.length > 0) {
       const nuevaFoto = result.assets[0].uri;
       console.log("Foto seleccionada:", nuevaFoto);
@@ -63,12 +64,18 @@ export default function TamboScreen() {
       {/* Título */}
       <Text style={styles.header}>Seleccioná un Tambo</Text>
 
+      {tambos.map((tambo, i) => (
+        <TouchableOpacity key={i} style={styles.tamboBox} onPress={() => alert(`Seleccionado: ${tambo.nombre}`)}>
+          <Text style={styles.tamboText}>{tambo.nombre}</Text>
+        </TouchableOpacity>
+      ))}
+
       {/* Lista de tambos */}
-      {tambos.map((nombre, i) => (
+      {/* {tambos.map((nombre, i) => (
         <TouchableOpacity key={i} style={styles.tamboBox} onPress={() => alert(`Seleccionado: ${nombre}`)}>
           <Text style={styles.tamboText}>{nombre}</Text>
         </TouchableOpacity>
-      ))}
+      ))} */}
 
       {/* Modal de perfil */}
       <Modal
@@ -91,7 +98,6 @@ export default function TamboScreen() {
             </TouchableOpacity>
 
             <Text>Nombre: {user?.nombre}</Text>
-            <Text>Cédula: {user?.cedula}</Text>
             <Text>Rol: {user?.rol || 'Sin rol asignado'}</Text>
 
             <TouchableOpacity
