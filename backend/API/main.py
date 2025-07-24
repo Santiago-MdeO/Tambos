@@ -1,8 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
 from backend.verificar_login import verificar_usuario
 from backend.consultar_vaca import obtener_datos_vaca_con_notas
 from backend.insertar_nota import insertar_nota
+from backend.auth import crear_token  # importá esta función
+from backend.auth import verificar_token
 
 app = FastAPI()
 
@@ -12,7 +14,6 @@ class Credenciales(BaseModel):
 
 class NuevaNota(BaseModel):
     vaca_id: int
-    usuario_id: int
     contenido: str
     motivo: str
 
@@ -27,9 +28,21 @@ def login(data: Credenciales):
     if not resultado["ok"]:
         raise HTTPException(status_code=401, detail=resultado["error"])
 
+    usuario = resultado["usuario"]
+    token = crear_token({
+        "usuario_id": usuario["id"],
+        "nombre": usuario["nombre"],
+        "rol": usuario["rol"]
+    })
+
     return {
         "ok": True,
-        "usuario": resultado["usuario"]
+        "usuario": {
+            "nombre": usuario["nombre"],
+            "rol": usuario["rol"],
+            "tambos": usuario["tambos"],
+            "token": token
+        }
     }
 
 @app.get("/vaca/{vaca_id}")
@@ -41,11 +54,22 @@ def obtener_vaca(vaca_id: int):
         return {"ok": False, "mensaje": "Vaca no encontrada"}
 
 @app.post("/nota")
-def crear_nota(data: NuevaNota):
+def crear_nota(data: NuevaNota, authorization: str = Header(..., alias="Authorization")):
+    # Extraer token
+    try:
+        token = authorization.split(" ")[1]  # elimina "Bearer "
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
     resultado = insertar_nota(
         vaca_id=data.vaca_id,
-        usuario_id=data.usuario_id,
+        usuario_id=usuario["usuario_id"],  # se extrae del token
         contenido=data.contenido,
         motivo=data.motivo
     )
+
     return resultado

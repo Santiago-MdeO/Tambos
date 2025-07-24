@@ -49,6 +49,7 @@ def verificar_usuario(cedula, contrasena):
         return {
             "ok": True,
             "usuario": {
+                "id": usuario["id"],
                 "nombre": usuario['nombre'],
                 "rol": usuario['rol'],
                 "tambos": tambos  # Lista de diccionarios con tambos
