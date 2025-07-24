@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "my-proyect",
-    "slug": "my-proyect",
+    "name": "gestion-tambos",
+    "slug": "gestion-tambos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
