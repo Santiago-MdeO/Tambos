@@ -1,9 +1,12 @@
 // app/_layout.js
+import React from 'react';
 import { Stack } from 'expo-router';
 import AppHeader from '../components/AppHeader';
-import { AuthProvider } from '../context/AuthContext'; // 👈 importá el AuthProvider
+import { AuthProvider } from '../context/AuthContext'; 
+import PropTypes from 'prop-types'; // 👈 Importar PropTypes
 
-export default function Layout() {
+// Recibimos children como prop del sistema de rutas de Expo Router
+export default function Layout({ children }) {
   return (
     <AuthProvider>
       <Stack
@@ -14,7 +17,12 @@ export default function Layout() {
           },
         }}
       />
+      {children}
     </AuthProvider>
   );
 }
 
+// ✅ Validación de props
+Layout.propTypes = {
+  children: PropTypes.node, // .node acepta cualquier tipo de elemento React
+};

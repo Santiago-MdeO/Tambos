@@ -1,3 +1,4 @@
+// Importación de librerías y componentes
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
@@ -8,18 +9,25 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 
 
 export default function LoginScreen() {
+  // Hook de navegación
   const router = useRouter();
+
+  // Estados del formulario
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+
+  // Estados para mostrar mensajes de error
   const [errorCedula, setErrorCedula] = useState('');
   const [errorPassword, setErrorPassword] = useState('');
 
-  const { login } = useAuth(); // Accedemos a la función para guardar el user
+  // Función del contexto de autenticación para guardar el usuario
+  const { login } = useAuth();
 
+  // Función que maneja el inicio de sesión
   const handleLogin = async () => {
-    // 🔄 Limpiamos errores previos antes de validar de nuevo
+    // Limpiamos errores previos antes de validar de nuevo
     setErrorCedula('');
     setErrorPassword('');
 
@@ -39,30 +47,33 @@ export default function LoginScreen() {
       valid = false;
     }
 
+    // Si hay errores, se detiene la ejecución
     if (!valid) return;
 
-    setLoading(true); // 🔄 Comienza la carga
+    // Comienza la carga
+    setLoading(true); 
 
     try {
-      // 📡 Hacemos la solicitud de login al servidor
+      //  Solicitud al servidor para verificar credenciales
       const data = await loginUsuario(cedula, password);
 
-      // ✅ Si la respuesta fue exitosa (login correcto)
+      // Si la respuesta es válida, guardamos el usuario y navegamos
       if (data.ok) {
         console.log('Usuario logueado:', data.usuario); // 👀 Solo visible en consola para debug
         login(data.usuario); // 🔐 Guardamos al usuario en el contexto global (AuthContext)
         router.push('/tambo'); // 🚀 Navegamos a la pantalla principal de gestión
       } else {
-        // ⚠️ Si el login fue rechazado por el servidor
+        // Si las credenciales no son válidas, mostramos el mensaje del backend
         alert(data.error || 'Cédula o contraseña incorrecta');
       }
 
     } catch (error) {
-      // ❌ Si ocurre un error inesperado (sin conexión, servidor caído, etc.)
+      // Si ocurre un error inesperado (sin conexión, servidor caído, etc.)
       console.error('Error al intentar loguear:', error);
       alert('Ocurrió un error al intentar iniciar sesión. Verificá tu conexión.');
     } finally {
-      setLoading(false); // ✅ Asegura que el botón vuelva a estado normal
+      // Finaliza el estado de carga
+      setLoading(false);
     }
   };
 
@@ -126,7 +137,7 @@ export default function LoginScreen() {
         </View>
         {errorPassword !== '' && (
           <Text style={styles.errorText}>{errorPassword}</Text>
-        )}
+        )}buttonText
 
         {/* Botón */}
         <TouchableOpacity
@@ -149,70 +160,79 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Contenedor principal de toda la pantalla
   container: {
     flex: 1,
     backgroundColor: '#FCFAF5',
   },
+  // Estilo para el ScrollView (permite desplazamiento en pantallas pequeñas)
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 30,
-    paddingBottom: 50,
+    justifyContent: 'center', // Centra verticalmente el contenido
+    paddingHorizontal: 30, // Espaciado lateral
+    paddingBottom: 50, // Espacio inferior extra
   },
+  // Contenedor para el logo y el título
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 10, // 👉🏼 nuevo: reduce margen lateral
+    flexDirection: 'row', // Elementos en línea (logo + texto)
+    alignItems: 'center', // Alineación vertical centrada
+    justifyContent: 'center', // Centra horizontalmente
+    marginBottom: 30, // Espaciado inferior
+    paddingHorizontal: 10, // Reduce margen lateral
   },
+  // Imagen del logo (vaca)
   logo: {
-    width: 120,        // 👉🏼 más grande
-    height: 120,       // 👉🏼 más grande
-    resizeMode: 'contain',
-    marginRight: 12,   // 👉🏼 un poco más de espacio del texto
+    width: 120,        
+    height: 120,       
+    resizeMode: 'contain', // Mantiene proporción de la imagen
+    marginRight: 12,   // Separación entre logo y texto
   },
+  // Título principal (Gestión de Tambos)
   title: {
-    fontSize: 34,      // 👉🏼 más grande
+    fontSize: 34,      
     fontWeight: 'bold',
     color: '#000',
-    textAlign: 'center', // 👉🏼 importante para mantener la alineación con el logo
-    lineHeight: 38,    // 👉🏼 mejora la separación entre "Gestión de" y "Tambos"
+    textAlign: 'center', // Importante para mantener la alineación con el logo
+    lineHeight: 38,    // Mejora la separación entre "Gestión de" y "Tambos"
   },
-  inputContainer: {
-    marginBottom: 30,
-  },
+  // Etiqueta del campo (ej: "Cédula de identidad")
   label: {
     marginTop: 10,
     fontSize: 16,
     color: '#333',
   },
+  // Botón de acción (ej: "Iniciar sesión")
   button: {
-    backgroundColor: '#086b39',
+    backgroundColor: '#086b39', // Verde oscuro
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
   },
+  // Estilo del texto dentro del botón
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
+  // Pie de página (ej: "Zephyra")
   footer: {
     textAlign: 'center',
     color: '#888',
     marginTop: 30,
   },
+  // Botón deshabilitado (cuando está cargando)
   buttonDisabled: {
     backgroundColor: '#ccc',
   },
+  // Estilo para mensajes de error debajo de los inputs
   errorText: {
     color: 'red',
     fontSize: 14,
     marginTop: 4,
     marginBottom: 8,
   },
+  // Contenedor del input y su ícono (si lo tuviera)
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -223,7 +243,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginTop: 4,
   },
-
+  // Campo de texto (input editable)
   input: {
     flex: 1,
     paddingVertical: 10,

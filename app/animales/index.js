@@ -1,48 +1,37 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { obtenerVacaPorId } from '../../lib/api';
+import { useRouter } from 'expo-router';
 
 export default function AnimalesScreen() {
+  const router = useRouter();
   const { tamboId } = useLocalSearchParams();
   const [search, setSearch] = useState('');
   const [animal, setAnimal] = useState(null);
+  const [error, setError] = useState('');
 
-    const buscarAnimal = async () => {
-        if (!search.trim()) return;
-      
-        try {
-          const data = await obtenerVacaPorId(search);
-          if (data.ok) {
-            setAnimal(data.datos.vaca);
-          } else {
-            alert(data.error);
-            setAnimal(null);
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Error de conexión');
-        }
-      };
+  <Text style={{ fontStyle: 'italic' }}>Tambo: {tamboId}</Text>
+  
+  const buscarAnimal = async () => {
+    if (!search.trim()) return;
 
-    //   const buscarAnimal = async () => {
-    //     if (!search.trim()) return;
-//     try {
-//       const res = await fetch("https://44d3b06942f8.ngrok-free.app/vaca/${search}");
-//       const data = await res.json();
-
-//       if (data.ok) {
-//         setAnimal(data.datos.vaca);
-//       } else {
-//         alert('Animal no encontrado');
-//         setAnimal(null);
-//       }
-//     } catch (err) {
-//       console.error(err);
-//       alert('Error de conexión');
-//     }
-//   };
+    try {
+      const data = await obtenerVacaPorId(search);
+      if (data.ok) {
+        setAnimal(data.datos.vaca);
+        setError('');
+      } else {
+        setAnimal(null);
+        setError(data.error || 'Animal no encontrado');
+      }
+    } catch (err) {
+      console.error(err);
+      setAnimal(null);
+      setError('Ocurrió un error de conexión. Intentá de nuevo.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -59,11 +48,18 @@ export default function AnimalesScreen() {
         />
       </View>
 
+      {error !== '' && (
+        <Text style={{ color: 'red', marginBottom: 10 }}>{error}</Text>
+      )}
+
       {animal && (
-        <TouchableOpacity style={styles.animalBox}>
-          <Text style={styles.animalId}>UY {animal.identificador}</Text>
-          <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
-        </TouchableOpacity>
+        <TouchableOpacity
+        style={styles.animalBox}
+        onPress={() => router.push(`/animales/${animal.identificador}`)}
+      >
+        <Text style={styles.animalId}>UY {animal.identificador}</Text>
+        <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
+      </TouchableOpacity>
       )}
 
       <TouchableOpacity style={styles.button}>
