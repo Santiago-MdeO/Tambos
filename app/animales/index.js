@@ -16,9 +16,10 @@ export default function AnimalesScreen() {
   
   const buscarAnimal = async () => {
     if (!search.trim()) return;
-
+  
     try {
-      const data = await obtenerVacaPorId(search);
+      const data = await obtenerVacaPorId(tamboId, search); // ✅ PASAMOS tamboId y search
+  
       if (data.ok) {
         setAnimal(data.datos.vaca);
         setError('');
@@ -26,6 +27,7 @@ export default function AnimalesScreen() {
         setAnimal(null);
         setError(data.error || 'Animal no encontrado');
       }
+  
     } catch (err) {
       console.error(err);
       setAnimal(null);
@@ -41,7 +43,7 @@ export default function AnimalesScreen() {
         <Ionicons name="search" size={20} color="#777" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Buscar"
+          placeholder="Buscar por número de animal"
           value={search}
           onChangeText={setSearch}
           onSubmitEditing={buscarAnimal}
