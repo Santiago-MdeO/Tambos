@@ -32,4 +32,4 @@ def crear_tambo(nombre, ubicacion, estado="activo"):
 
 # ----------- PRUEBA MANUAL -----------
 if __name__ == "__main__":
-    crear_tambo("Tambo San José", "Ruta 11 km 22, San José")
+    crear_tambo("Campo Montes de Oca", "Ruta 1011 km 1, Cufré")

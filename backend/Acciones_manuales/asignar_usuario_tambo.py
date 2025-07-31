@@ -46,7 +46,7 @@ def asignar_usuario_a_tambo(usuario_id, tambo_id, rol_en_tambo):
 # ---------- PRUEBA MANUAL ----------
 if __name__ == "__main__":
     asignar_usuario_a_tambo(
-        usuario_id=1,
-        tambo_id=1,
-        rol_en_tambo="Veterinario"  # Cambialo por "Tambero", "Vaquero", etc.
+        usuario_id=4,
+        tambo_id=6,
+        rol_en_tambo="Vaquero"  # Cambialo por "Tambero", "Vaquero", etc.
     )

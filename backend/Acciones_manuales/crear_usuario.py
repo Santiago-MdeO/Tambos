@@ -2,8 +2,8 @@ import mysql.connector
 import bcrypt
 
 # Datos del usuario (pueden venir más adelante desde un formulario)
-cedula = "46623757"
-nombre = "Cristian Navarro"
+cedula = "987654321"
+nombre = "Usuario de prueba 2"
 rol = "desarrollo"
 contrasena = "123456789"
 
