@@ -1,6 +1,6 @@
 import mysql.connector
 
-def obtener_datos_vaca_con_notas(vaca_id):
+def obtener_datos_vaca_con_notas(tambo_id, identificador):
     conexion = mysql.connector.connect(
         host="localhost",
         user="root",
@@ -10,20 +10,20 @@ def obtener_datos_vaca_con_notas(vaca_id):
     cursor = conexion.cursor(dictionary=True)
 
     query = """
-    SELECT
-        v.*,
-        n.id AS nota_id,
-        n.contenido,
-        n.fecha_creacion,
-        u.nombre AS nombre_usuario,
-        u.rol
-    FROM vacas v
-    LEFT JOIN notas n ON v.identificador = n.vaca_id
-    LEFT JOIN usuarios u ON n.usuario_id = u.id
-    WHERE v.identificador = %s
-    ORDER BY n.fecha_creacion DESC;
+        SELECT v.*, 
+               n.id AS nota_id, 
+               n.contenido, 
+               n.fecha_creacion,
+               u.nombre AS nombre_usuario, 
+               u.rol
+        FROM vacas v
+        LEFT JOIN notas n ON v.identificador = n.vaca_id
+        LEFT JOIN usuarios u ON u.id = n.usuario_id
+        WHERE v.identificador = %s AND v.tambo_id = %s
+        ORDER BY n.fecha_creacion DESC
     """
-    cursor.execute(query, (vaca_id,))
+
+    cursor.execute(query, (identificador, tambo_id))
     resultados = cursor.fetchall()
 
     cursor.close()
@@ -49,7 +49,7 @@ def obtener_datos_vaca_con_notas(vaca_id):
     for fila in resultados:
         if fila["nota_id"]:
             vaca["vaca"]["notas"].append({
-                "_id": fila["nota_id"],
+                "id": fila["nota_id"],
                 "contenido": fila["contenido"],
                 "fecha_creacion": str(fila["fecha_creacion"]),
                 "autor": fila["nombre_usuario"],

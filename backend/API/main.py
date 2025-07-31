@@ -45,9 +45,9 @@ def login(data: Credenciales):
         }
     }
 
-@app.get("/vaca/{vaca_id}")
-def obtener_vaca(vaca_id: int):
-    datos = obtener_datos_vaca_con_notas(vaca_id)
+@app.get("/vaca/{tambo_id}/{identificador}")
+def obtener_vaca(tambo_id: int, identificador: int):
+    datos = obtener_datos_vaca_con_notas(tambo_id, identificador)
     if datos:
         return {"ok": True, "datos": datos}
     else:

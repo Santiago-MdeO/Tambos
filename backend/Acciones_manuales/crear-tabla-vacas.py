@@ -1,5 +1,5 @@
 import mysql.connector
-
+#este codigo no es el de la tabal que esta en el MySQL
 conexion = mysql.connector.connect(
     host="localhost",
     user="root",
