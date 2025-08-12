@@ -3,8 +3,11 @@ from pydantic import BaseModel
 from backend.verificar_login import verificar_usuario
 from backend.consultar_vaca import obtener_datos_vaca_con_notas
 from backend.insertar_nota import insertar_nota
-from backend.auth import crear_token  # importá esta función
+from backend.auth import crear_token
 from backend.auth import verificar_token
+from pydantic import BaseModel
+from backend.insertar_inseminacion import insertar_inseminacion
+from backend.verificar_vaca import verificar_vaca_en_tambo
 
 app = FastAPI()
 
@@ -16,6 +19,12 @@ class NuevaNota(BaseModel):
     vaca_id: int
     contenido: str
     motivo: str
+
+class AsignarInseminacion(BaseModel):
+    identificador_vaca: int
+    tambo_id: int
+    fecha_inseminacion: str  # formato: YYYY-MM-DD
+    inseminador_id: int
 
 @app.get("/")
 def root():
@@ -71,5 +80,30 @@ def crear_nota(data: NuevaNota, authorization: str = Header(..., alias="Authoriz
         contenido=data.contenido,
         motivo=data.motivo
     )
+
+    return resultado
+
+@app.post("/asignar-inseminacion")
+def asignar_inseminacion(data: AsignarInseminacion, authorization: str = Header(..., alias="Authorization")):
+    try:
+        token = authorization.split(".")[1]
+    except Exception:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    resultado = insertar_inseminacion(
+        identificador_vaca=data.identificador_vaca,
+        tambo_id=data.tambo_id,
+        fecha_inseminacion=data.fecha_inseminacion,
+        inseminador_id=data.inseminador_id
+    )
+
+    if not verificar_vaca_en_tambo(data.identificador_vaca, data.tambo_id):
+        raise HTTPException(
+            status_code=400,
+            detail="La vaca no pertenece al tambo especificado"
+        )
+
+    if not resultado.get("ok"):
+        raise HTTPException(status_code=500, detail=resultado["error"])
 
     return resultado
