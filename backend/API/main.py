@@ -8,6 +8,7 @@ from backend.auth import verificar_token
 from pydantic import BaseModel
 from backend.insertar_inseminacion import insertar_inseminacion
 from backend.verificar_vaca import verificar_vaca_en_tambo
+from backend.consultar_inseminaciones import obtener_historial_inseminaciones
 
 app = FastAPI()
 
@@ -107,3 +108,22 @@ def asignar_inseminacion(data: AsignarInseminacion, authorization: str = Header(
         raise HTTPException(status_code=500, detail=resultado["error"])
 
     return resultado
+
+@app.get("/historial-inseminacion/{tambo_id}/{identificador_vaca}")
+def historial_inseminacion(tambo_id: int, identificador_vaca: int, authorization: str = Header(..., alias="Authorization")):
+    # Verificación de token
+    try:
+        token = authorization.split(" ")[1]
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    historial = obtener_historial_inseminaciones(identificador_vaca, tambo_id)
+
+    return {
+        "ok": True,
+        "historial": historial
+    }
