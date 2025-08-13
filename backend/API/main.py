@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from backend.insertar_inseminacion import insertar_inseminacion
 from backend.verificar_vaca import verificar_vaca_en_tambo
 from backend.consultar_inseminaciones import obtener_historial_inseminaciones
+from backend.actualizar_resultado_inseminacion import actualizar_resultado_inseminacion
 
 app = FastAPI()
 
@@ -26,6 +27,10 @@ class AsignarInseminacion(BaseModel):
     tambo_id: int
     fecha_inseminacion: str  # formato: YYYY-MM-DD
     inseminador_id: int
+
+class ResultadoUpdate(BaseModel):
+    id_asignacion: int
+    resultado: str
 
 @app.get("/")
 def root():
@@ -127,3 +132,29 @@ def historial_inseminacion(tambo_id: int, identificador_vaca: int, authorization
         "ok": True,
         "historial": historial
     }
+
+
+@app.put("/resultado-inseminacion")
+def modificar_resultado_inseminacion(data: ResultadoUpdate, authorization: str = Header(..., alias="Authorization")):
+    # Extraer token
+    try:
+        token = authorization.split(" ")[1]  # elimina "Bearer"
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    inseminador_id = usuario["usuario_id"]
+
+    resultado = actualizar_resultado_inseminacion(
+        id_asignacion=data.id_asignacion,
+        resultado=data.resultado,
+        inseminador_id=inseminador_id
+    )
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=403, detail=resultado["error"])
+
+    return resultado
