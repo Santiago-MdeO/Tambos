@@ -18,7 +18,7 @@ import { Modal } from 'react-native';
 
 export default function DetalleVacaScreen() {
   // Parametros de navegación
-  const { id } = useLocalSearchParams(); // Obtenemos el ID de la vaca desde la URL
+  const { id, tamboId } = useLocalSearchParams(); // Obtenemos el ID de la vaca desde la URL
 
 // Estados principales
   const [vaca, setVaca] = useState(null); // Estado para guardar los datos de la vaca
@@ -46,7 +46,7 @@ export default function DetalleVacaScreen() {
   useEffect(() => {
     const fetchVaca = async () => {
       try {
-        const data = await obtenerVacaPorId(id);
+        const data = await obtenerVacaPorId(tamboId, id); // ✅ ahora pasa tamboId y el id de la vaca
         if (data.ok) {
           setVaca(data.datos.vaca);
         } else {
@@ -60,7 +60,25 @@ export default function DetalleVacaScreen() {
       }
     };
     fetchVaca();
-  }, [id]);
+  }, [tamboId, id]); // ✅ agrega tamboId como dependencia
+  // useEffect(() => {
+  //   const fetchVaca = async () => {
+  //     try {
+  //       const data = await obtenerVacaPorId(id);
+  //       if (data.ok) {
+  //         setVaca(data.datos.vaca);
+  //       } else {
+  //         setError(data.error || 'No se pudo obtener la información del animal.');
+  //       }
+  //     } catch (err) {
+  //       console.error('Error al cargar vaca:', err);
+  //       setError('Error de conexión con el servidor.');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchVaca();
+  // }, [id]);
 
   // Función para enviar una nueva nota al backend
   const manejarNuevaNota = async () => {
@@ -73,7 +91,7 @@ export default function DetalleVacaScreen() {
       const respuesta = await crearNota(id, contenido, motivo, user?.token);
       if (respuesta.ok) {
         // Recargamos los datos de la vaca incluyendo la nueva nota
-        const data = await obtenerVacaPorId(id);
+        const data = await obtenerVacaPorId(tamboId, id);
         if (data.ok) {
           setVaca(data.datos.vaca);
           setContenido('');

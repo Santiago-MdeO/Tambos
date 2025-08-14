@@ -13,13 +13,13 @@ export default function AnimalesScreen() {
   const [error, setError] = useState('');
 
   <Text style={{ fontStyle: 'italic' }}>Tambo: {tamboId}</Text>
-  
+
   const buscarAnimal = async () => {
     if (!search.trim()) return;
-  
+
     try {
       const data = await obtenerVacaPorId(tamboId, search); // ✅ PASAMOS tamboId y search
-  
+
       if (data.ok) {
         setAnimal(data.datos.vaca);
         setError('');
@@ -27,7 +27,7 @@ export default function AnimalesScreen() {
         setAnimal(null);
         setError(data.error || 'Animal no encontrado');
       }
-  
+
     } catch (err) {
       console.error(err);
       setAnimal(null);
@@ -56,12 +56,20 @@ export default function AnimalesScreen() {
 
       {animal && (
         <TouchableOpacity
-        style={styles.animalBox}
-        onPress={() => router.push(`/animales/${animal.identificador}`)}
-      >
-        <Text style={styles.animalId}>UY {animal.identificador}</Text>
-        <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
-      </TouchableOpacity>
+          style={styles.animalBox}
+          onPress={() =>
+            router.push({
+              pathname: '/animales/[id]',
+              params: {
+                id: String(animal.identificador),
+                tamboId: String(tamboId)
+              },
+            })
+          }
+        >
+          <Text style={styles.animalId}>UY {animal.identificador}</Text>
+          <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
+        </TouchableOpacity>
       )}
 
       <TouchableOpacity style={styles.button}>
