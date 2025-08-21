@@ -51,7 +51,7 @@ export default function LoginScreen() {
     if (!valid) return;
 
     // Comienza la carga
-    setLoading(true); 
+    setLoading(true);
 
     try {
       //  Solicitud al servidor para verificar credenciales
@@ -182,14 +182,14 @@ const styles = StyleSheet.create({
   },
   // Imagen del logo (vaca)
   logo: {
-    width: 120,        
-    height: 120,       
+    width: 120,
+    height: 120,
     resizeMode: 'contain', // Mantiene proporción de la imagen
     marginRight: 12,   // Separación entre logo y texto
   },
   // Título principal (Gestión de Tambos)
   title: {
-    fontSize: 34,      
+    fontSize: 34,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center', // Importante para mantener la alineación con el logo

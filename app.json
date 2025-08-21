@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Gestión de Tambos",
+    "name": "",
     "slug": "gestion-tambos",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/Santi.jpeg",
     "userInterfaceStyle": "light",
     "scheme": "gestion-tambos",
     "splash": {

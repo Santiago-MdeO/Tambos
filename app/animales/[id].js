@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams } from 'expo-router';
 import { obtenerVacaPorId, crearNota } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +21,7 @@ export default function DetalleVacaScreen() {
   // Parametros de navegación
   const { id, tamboId } = useLocalSearchParams(); // Obtenemos el ID de la vaca desde la URL
 
-// Estados principales
+  // Estados principales
   const [vaca, setVaca] = useState(null); // Estado para guardar los datos de la vaca
   const [loading, setLoading] = useState(true); // Indicador de carga
   const [error, setError] = useState(null); // Estado para manejar errores
@@ -28,6 +29,7 @@ export default function DetalleVacaScreen() {
   // Estados para nueva nota
   const [contenido, setContenido] = useState(''); // Estado para el texto de la nueva nota
   const [motivo, setMotivo] = useState(''); // Estado para el motivo de la nueva nota
+  const [motivoVisible, setMotivoVisible] = useState(false);
 
   // Estados de filtros y vistas
   const [verTodas, setVerTodas] = useState(false);
@@ -41,7 +43,7 @@ export default function DetalleVacaScreen() {
 
   // Contexto de autenticación
   const { user } = useAuth(); // Accedemos al usuario y su token
-  
+
   // Cargamos los datos de la vaca al montar el componente
   useEffect(() => {
     const fetchVaca = async () => {
@@ -61,24 +63,6 @@ export default function DetalleVacaScreen() {
     };
     fetchVaca();
   }, [tamboId, id]); // ✅ agrega tamboId como dependencia
-  // useEffect(() => {
-  //   const fetchVaca = async () => {
-  //     try {
-  //       const data = await obtenerVacaPorId(id);
-  //       if (data.ok) {
-  //         setVaca(data.datos.vaca);
-  //       } else {
-  //         setError(data.error || 'No se pudo obtener la información del animal.');
-  //       }
-  //     } catch (err) {
-  //       console.error('Error al cargar vaca:', err);
-  //       setError('Error de conexión con el servidor.');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchVaca();
-  // }, [id]);
 
   // Función para enviar una nueva nota al backend
   const manejarNuevaNota = async () => {
@@ -334,19 +318,72 @@ export default function DetalleVacaScreen() {
 
       {/* Formulario para nueva nota */}
       <Text style={styles.subtitle}>Agregar nueva nota</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Motivo"
-        value={motivo}
-        onChangeText={setMotivo}
-      />
-      <TextInput
+
+      Motivo (selector)
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={motivo}
+          onValueChange={(v) => setMotivo(v)}
+        >
+          {/* Usamos valores sin tilde para el backend */}
+          <Picker.Item label="Enfermedad" value="Enfermedad" />
+          <Picker.Item label="Inseminación" value="Inseminacion" />
+          <Picker.Item label="Otros" value="Otros" />
+        </Picker>
+      </View>
+
+      {/* Contenido */}
+      {/* Motivo (como input, abre opciones) */}
+      <TouchableOpacity
+        onPress={() => setMotivoVisible(true)}
+        activeOpacity={0.8}
+        style={styles.input}   // mismo estilo que usabas en los inputs
+      >
+        <Text style={{ color: motivo ? '#000' : '#999', fontSize: 16 }}>
+          {motivo || 'Motivo'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Modal de opciones */}
+      <Modal
+        visible={motivoVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMotivoVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Seleccioná un motivo</Text>
+
+            {[
+              { label: 'Enfermedad', value: 'Enfermedad' },
+              { label: 'Inseminación', value: 'Inseminacion' }, // sin tilde para backend
+              { label: 'Otros', value: 'Otros' },
+            ].map((op) => (
+              <TouchableOpacity
+                key={op.value}
+                style={styles.modalItem}
+                onPress={() => { setMotivo(op.value); setMotivoVisible(false); }}
+              >
+                <Text style={styles.modalItemText}>{op.label}</Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity onPress={() => setMotivoVisible(false)}>
+              <Text style={styles.modalCancel}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* <TextInput
         style={[styles.input, { height: 80 }]}
         placeholder="Contenido de la nota"
+        placeholderTextColor="#999"
         value={contenido}
         onChangeText={setContenido}
         multiline
-      />
+      /> */}
+
       <TouchableOpacity style={styles.button} onPress={manejarNuevaNota}>
         <Text style={styles.buttonText}>Guardar nota</Text>
       </TouchableOpacity>
@@ -528,4 +565,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCard: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#111',
+  },
+  modalItem: {
+    paddingVertical: 10,
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: '#222',
+  },
+  modalCancel: {
+    marginTop: 8,
+    textAlign: 'right',
+    color: '#888',
+    fontSize: 14,
+  }
 });

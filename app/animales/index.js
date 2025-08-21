@@ -11,8 +11,9 @@ export default function AnimalesScreen() {
   const [search, setSearch] = useState('');
   const [animal, setAnimal] = useState(null);
   const [error, setError] = useState('');
+  const [showActionsFor, setShowActionsFor] = useState(null); // id del animal cuya fila muestra acciones
 
-  <Text style={{ fontStyle: 'italic' }}>Tambo: {tamboId}</Text>
+
 
   const buscarAnimal = async () => {
     if (!search.trim()) return;
@@ -39,6 +40,8 @@ export default function AnimalesScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Gestión de Tambos</Text>
 
+      <Text style={{ fontStyle: 'italic' }}>Tambo: {tamboId}</Text>
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#777" />
         <TextInput
@@ -55,21 +58,46 @@ export default function AnimalesScreen() {
       )}
 
       {animal && (
-        <TouchableOpacity
-          style={styles.animalBox}
-          onPress={() =>
-            router.push({
-              pathname: '/animales/[id]',
-              params: {
-                id: String(animal.identificador),
-                tamboId: String(tamboId)
-              },
-            })
-          }
-        >
-          <Text style={styles.animalId}>UY {animal.identificador}</Text>
-          <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
-        </TouchableOpacity>
+        <View style={{ marginBottom: 12 }}>
+          <TouchableOpacity
+            style={styles.animalBox}
+            onPress={() =>
+              setShowActionsFor(prev => (prev === animal.identificador ? null : animal.identificador))
+            }
+          >
+            <Text style={styles.animalId}>UY {animal.identificador}</Text>
+            <Text style={styles.animalRaza}>{animal.raza_cruza}</Text>
+          </TouchableOpacity>
+
+          {showActionsFor === animal.identificador && (
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionPrimary]}
+                onPress={() =>
+                  router.push({
+                    pathname: '/animales/[id]',
+                    params: { id: String(animal.identificador), tamboId: String(tamboId) },
+                  })
+                }
+              >
+                <Text style={styles.actionText}>Notas</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionSecondary]}
+                onPress={() =>
+                  router.push({
+                    pathname: '/inseminacion/[id]',
+                    params: { id: String(animal.identificador), tamboId: String(tamboId) },
+                  })
+                }
+              >
+                <Text style={styles.actionText}>Inseminar</Text>
+              </TouchableOpacity>
+
+            </View>
+          )}
+        </View>
       )}
 
       <TouchableOpacity style={styles.button}>
@@ -127,5 +155,26 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 6,
+  },
+  actionBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  actionPrimary: {
+    backgroundColor: '#176f3d',
+  },
+  actionSecondary: {
+    backgroundColor: '#0b5c2f',
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });

@@ -20,6 +20,9 @@ export default defineConfig([
         version: "detect", // ⬅️ esto resuelve la advertencia del plugin-react
       },
     },
+    rules: {
+      "react/prop-types": "off",  // 🚫 Desactiva validación de prop-types
+    },
   },
   pluginReact.configs.flat.recommended,
 ]);
