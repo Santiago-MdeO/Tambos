@@ -20,7 +20,8 @@ import {
     asignarInseminacion,
     obtenerHistorialInseminacion,
     obtenerInseminadoresPorTambo,
-} from "../../lib/api";
+}
+    from "../../lib/api";
 
 export default function InseminacionScreen() {
     const router = useRouter();
@@ -74,11 +75,13 @@ export default function InseminacionScreen() {
         })();
     }, [id, tamboId, user?.token]);
 
-    // Carga inseminadores del tambo al entrar
+    // Cargar inseminadores del tambo
     useEffect(() => {
         let cancelado = false;
+
         (async () => {
-            if (!user?.token) return;         // nada que hacer sin token
+            if (!user?.token) return;
+
             setCargandoInsem(true);
             setErrorInsem("");
 
@@ -87,28 +90,23 @@ export default function InseminacionScreen() {
                     tambo_id: Number(tamboId),
                     token: user?.token,
                 });
-
                 if (cancelado) return;
 
-                if (resp.ok) {
-                    const lista = resp.inseminadores ?? [];
-                    setListaInsem(lista);
-                    setErrorInsem("");            // limpia error previo
+                const lista = Array.isArray(resp?.inseminadores) ? resp.inseminadores : [];
+                setListaInsem(lista);
+                setErrorInsem("");
 
-                    // Autoseleccionar el primero (opcional)
-                    if (lista.length) {
-                        setSelectedInsemId(lista[0].id);
-                        setInseminador(lista[0].nombre);
-                    } else {
-                        // Si no hay inseminadores, dejá campos limpios
-                        setSelectedInsemId(null);
-                        setInseminador("");
-                    }
+                if (lista.length === 1) {
+                    // ✅ Autoseleccionar el único
+                    setSelectedInsemId(lista[0].id);
+                    setInseminador(lista[0].nombre);
                 } else {
-                    setErrorInsem(resp.error || resp.detail || "No se pudieron cargar los inseminadores.");
+                    // ✅ 0 o >1: campo vacío
+                    setSelectedInsemId(null);
+                    setInseminador("");
                 }
             } catch (e) {
-                if (!cancelado) setErrorInsem(e.message || "Error de conexión al cargar inseminadores.");
+                if (!cancelado) setErrorInsem(e?.message || "Error de conexión al cargar inseminadores.");
             } finally {
                 if (!cancelado) setCargandoInsem(false);
             }
@@ -173,6 +171,9 @@ export default function InseminacionScreen() {
         }
     };
 
+    // 👇 agregá esta constante justo antes del return, donde calculás cosas como historialMostrar
+    const deshabilitarAceptar = !fecha || !selectedInsemId;
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.screenTitle}>Inseminación</Text>
@@ -208,7 +209,7 @@ export default function InseminacionScreen() {
             <View style={styles.inputRow}>
                 <TouchableOpacity
                     style={[styles.inputBox, { flex: 1 }]}
-                    onPress={() => setShowFechaPicker(true)}
+                    onPress={() => setShowFechaPicker((s) => !s)}
                 >
                     <Text style={{ color: fecha ? "#000" : "#888" }}>
                         {fecha || "Fecha de inseminación (YYYY-MM-DD)"}
@@ -244,14 +245,18 @@ export default function InseminacionScreen() {
             )}
 
             {/* Inseminador (selector minimalista con modal) */}
-            <View style={styles.row}>
+            <View style={styles.inputRow}>
                 <TouchableOpacity
-                    style={[styles.inputBox, { flex: 1 }]}
-                    onPress={() => setModalInseminador(true)}
+                    style={[styles.inputBox, { flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }]}
+                    onPress={() => {
+                        if (listaInsem.length > 1) setModalInseminador(true);
+                    }}
+                    activeOpacity={0.8}
                 >
-                    <Text style={{ color: inseminador ? "#000" : "#888" }}>
-                        {inseminador || "Elegir inseminador"}
+                    <Text style={{ color: selectedInsemId ? "#000" : "#888" }}>
+                        {selectedInsemId ? inseminador : "Elegir inseminador"}
                     </Text>
+                    <Text style={{ color: "#aaa", fontSize: 16 }}>›</Text>
                 </TouchableOpacity>
             </View>
 
@@ -276,23 +281,44 @@ export default function InseminacionScreen() {
                                 No hay inseminadores para este tambo
                             </Text>
                         ) : (
-                            listaInsem.map((op) => (
-                                <TouchableOpacity
-                                    key={op.id}                      // <- key estable
-                                    style={styles.modalItem}
-                                    onPress={() => {
-                                        setSelectedInsemId(op.id);   // ← ID numérico para backend
-                                        setInseminador(op.nombre);   // ← texto visible
-                                        setModalInseminador(false);
-                                    }}
-                                >
-                                    <Text style={{ color: "#000" }}>{op.nombre}</Text>
-                                </TouchableOpacity>
-                            ))
+                            listaInsem.map((op) => {
+                                const isSelected = selectedInsemId === op.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={op.id}
+                                        style={styles.modalItem}
+                                        onPress={() => {
+                                            setSelectedInsemId(op.id);
+                                            setInseminador(op.nombre);
+                                            setModalInseminador(false);
+                                        }}
+                                        activeOpacity={0.8}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.modalItemText,
+                                                isSelected && styles.modalItemSelected,
+                                            ]}
+                                            numberOfLines={1}
+                                        >
+                                            {op.nombre}
+                                        </Text>
+
+                                        {/* check de selección */}
+                                        <Text style={[styles.modalItemText, { color: isSelected ? "#086b39" : "transparent" }]}>
+                                            ✓
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })
                         )}
 
-                        <TouchableOpacity onPress={() => setModalInseminador(false)} style={{ marginTop: 8 }}>
-                            <Text style={{ textAlign: "right", color: "#888" }}>Cerrar</Text>
+                        <TouchableOpacity
+                            onPress={() => setModalInseminador(false)}
+                            style={styles.modalClose}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.modalCloseText}>Cerrar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -345,24 +371,42 @@ export default function InseminacionScreen() {
                     </View>
                 ))
             )}
-
             {/* Acciones */}
             <View style={{ height: 16 }} />
+
             <View style={styles.actionRow}>
+                {/* Aceptar */}
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: "#086b39" }]}
-                    onPress={onAceptar}
+                    activeOpacity={0.8}
+                    // si está deshabilitado, no dispara onPress
+                    onPress={deshabilitarAceptar ? undefined : onAceptar}
+                    style={[
+                        styles.actionButton,
+                        {
+                            backgroundColor: deshabilitarAceptar ? "#9cccaa" : "#086b39",
+                        },
+                    ]}
                 >
                     <Text style={styles.actionButtonText}>Aceptar</Text>
                 </TouchableOpacity>
+
+                {/* Cancelar */}
                 <TouchableOpacity
-                    style={[styles.actionButton, { backgroundColor: "#086b39" }]}
+                    activeOpacity={0.8}
                     onPress={() => router.back()}
+                    style={[
+                        styles.actionButton,
+                        { backgroundColor: "#ddd" },
+                    ]}
                 >
-                    <Text style={styles.actionButtonText}>Cancelar</Text>
+                    <Text style={[styles.actionButtonText, { color: "#000" }]}>
+                        Cancelar
+                    </Text>
                 </TouchableOpacity>
             </View>
+
             <View style={{ height: 24 }} />
+
         </ScrollView>
     );
 
@@ -502,31 +546,6 @@ const styles = StyleSheet.create({
         padding: 12,
     },
 
-    // ====== Modal Inseminador ======
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    modalCard: {
-        width: "80%",
-        backgroundColor: "#fff",
-        borderRadius: 12,
-        padding: 16,
-    },
-    modalTitle: {
-        fontWeight: "bold",
-        fontSize: 16,
-        marginBottom: 8,
-        color: "#000"
-    },
-    modalItem: {
-        paddingVertical: 10,
-        borderBottomColor: "#eee",
-        borderBottomWidth: 1,
-    },
-
     // ====== Acciones (botones y filas) ======
     actionRow: {
         flexDirection: "row",
@@ -550,4 +569,144 @@ const styles = StyleSheet.create({
         color: "#b00020",
         fontSize: 13
     },
+    // Fondo desenfocado
+    // modalOverlay: {
+    //     flex: 1,
+    //     backgroundColor: "rgba(0,0,0,0.35)",
+    //     justifyContent: "center",
+    //     alignItems: "center",
+    //     padding: 20,
+    // },
+
+    // Tarjeta
+    // modalCard: {
+    //     width: "100%",
+    //     maxWidth: 520,
+    //     backgroundColor: "#fff",
+    //     borderRadius: 12,
+    //     paddingHorizontal: 14,
+    //     paddingTop: 14,
+    //     paddingBottom: 8,
+    //     shadowColor: "#000",
+    //     shadowOpacity: 0.15,
+    //     shadowOffset: { width: 0, height: 8 },
+    //     shadowRadius: 16,
+    //     elevation: 8,
+    // },
+
+    // modalTitle: {
+    //     fontSize: 17,
+    //     fontWeight: "700",
+    //     color: "#000",
+    //     marginBottom: 8,
+    // },
+
+    // Lista con límite de alto (scroll)
+    modalList: {
+        maxHeight: "60%", // evita que tape toda la pantalla si hay muchos
+    },
+
+    modalMuted: {
+        color: "#666",
+        fontSize: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 4,
+    },
+
+    // Ítem
+    // modalItem: {
+    //     flexDirection: "row",
+    //     alignItems: "center",
+    //     justifyContent: "space-between",
+    //     paddingVertical: 12,
+    //     paddingHorizontal: 4,
+    //     borderBottomWidth: StyleSheet.hairlineWidth,
+    //     borderBottomColor: "#eee",
+    // },
+
+    // modalItemSelected: {
+    //     backgroundColor: "#f1f8f3", // leve highlight
+    //     borderRadius: 8,
+    // },
+
+    // modalItemText: {
+    //     color: "#111",
+    //     fontSize: 16,
+    // },
+
+    modalItemTextSelected: {
+        fontWeight: "600",
+        color: "#086b39",
+    },
+
+    modalCheck: {
+        fontSize: 16,
+        color: "#086b39",
+        marginLeft: 10,
+    },
+
+    // Footer
+    modalFooter: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        paddingTop: 6,
+    },
+
+    modalGhostBtn: {
+        paddingVertical: 10,
+        paddingHorizontal: 6,
+    },
+
+    modalGhostText: {
+        color: "#888",
+        fontSize: 16,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.2)",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      modalCard: {
+        width: "85%",
+        backgroundColor: "#fff",
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+      },
+      modalTitle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginBottom: 12,
+        color: "#000",
+        textAlign: "center",
+      },
+      modalItem: {
+        paddingVertical: 12,
+        borderBottomColor: "#f0f0f0",
+        borderBottomWidth: 1,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+      },
+      modalItemText: {
+        fontSize: 15,
+        color: "#000",
+      },
+      modalItemSelected: {
+        color: "#086b39",
+        fontWeight: "600",
+      },
+      modalClose: {
+        marginTop: 10,
+        alignSelf: "flex-end",
+      },
+      modalCloseText: {
+        color: "#888",
+        fontSize: 14,
+      }
 });
