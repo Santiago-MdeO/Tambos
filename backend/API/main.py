@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Header
 from pydantic import BaseModel
+import mysql.connector
 from backend.verificar_login import verificar_usuario
 from backend.consultar_vaca import obtener_datos_vaca_con_notas
 from backend.insertar_nota import insertar_nota
@@ -11,7 +12,8 @@ from backend.verificar_vaca import verificar_vaca_en_tambo
 from backend.consultar_inseminaciones import obtener_historial_inseminaciones
 from backend.actualizar_resultado_inseminacion import actualizar_resultado_inseminacion
 from backend.obtener_inseminadores import obtener_inseminadores_por_tambo
-
+from backend.crear_y_asignar_usuario import crear_y_asignar_usuario
+from backend.obtener_usuarios_por_tambo import obtener_usuarios_por_tambo
 
 app = FastAPI()
 
@@ -33,6 +35,12 @@ class AsignarInseminacion(BaseModel):
 class ResultadoUpdate(BaseModel):
     id_asignacion: int
     resultado: str
+
+class NuevoUsuario(BaseModel):
+    cedula: str
+    nombre: str
+    rol: str
+    contrasena: str
 
 @app.get("/")
 def root():
@@ -173,4 +181,71 @@ def get_inseminadores(tambo_id: int, authorization: str = Header(..., alias="Aut
         raise HTTPException(status_code=401, detail="Token inválido")
 
     resultado = obtener_inseminadores_por_tambo(tambo_id)
+    return resultado
+
+@app.post("/crear-usuario")
+def crear_usuario(data: NuevoUsuario, authorization: str = Header(..., alias="Authorization")):
+    # Extraer el token
+    try:
+        token = authorization.split(" ")[1]
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    usuario_id_token = usuario.get("usuario_id")
+    if not usuario_id_token:
+        raise HTTPException(status_code=400, detail="No se encontró el usuario_id en el token")
+
+    # Obtener el tambo_id desde la base de datos
+    try:
+        conexion = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="zephyra2025",
+            database="tambo_db"
+        )
+        cursor = conexion.cursor()
+        query = "SELECT tambo_id FROM usuario_tambo WHERE usuario_id = %s LIMIT 1"
+        cursor.execute(query, (usuario_id_token,))
+        resultado = cursor.fetchone()
+        cursor.close()
+        conexion.close()
+
+        if not resultado:
+            raise HTTPException(status_code=404, detail="No se encontró ningún tambo asociado a este usuario")
+        
+        tambo_id = resultado[0]
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener tambo_id: {str(e)}")
+
+    # Llamar a la función que crea el usuario
+    resultado = crear_y_asignar_usuario(
+        cedula=data.cedula,
+        nombre=data.nombre,
+        rol=data.rol,
+        contrasena=data.contrasena,
+        tambo_id=tambo_id
+    )
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=500, detail=resultado["error"])
+
+    return {"ok": True, "mensaje": resultado["mensaje"]}
+
+@app.get("/usuarios-asignados/{tambo_id}")
+def get_usuarios_asignados(tambo_id: int, authorization: str = Header(..., alias="Authorization")):
+    try:
+        token = authorization.split(" ")[1]
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    resultado = obtener_usuarios_por_tambo(tambo_id)
     return resultado
