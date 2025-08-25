@@ -10,6 +10,8 @@ from backend.insertar_inseminacion import insertar_inseminacion
 from backend.verificar_vaca import verificar_vaca_en_tambo
 from backend.consultar_inseminaciones import obtener_historial_inseminaciones
 from backend.actualizar_resultado_inseminacion import actualizar_resultado_inseminacion
+from backend.obtener_inseminadores import obtener_inseminadores_por_tambo
+
 
 app = FastAPI()
 
@@ -157,4 +159,18 @@ def modificar_resultado_inseminacion(data: ResultadoUpdate, authorization: str =
     if not resultado["ok"]:
         raise HTTPException(status_code=403, detail=resultado["error"])
 
+    return resultado
+
+@app.get("/inseminadores/{tambo_id}")
+def get_inseminadores(tambo_id: int, authorization: str = Header(..., alias="Authorization")):
+    try:
+        token = authorization.split(" ")[1]
+    except:
+        raise HTTPException(status_code=401, detail="Token mal formado")
+
+    usuario = verificar_token(token)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Token inválido")
+
+    resultado = obtener_inseminadores_por_tambo(tambo_id)
     return resultado
